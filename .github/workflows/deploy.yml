@@ -44,11 +44,11 @@ jobs:
 
     - name: Initialize Terraform
       run: terraform init
-      working-directory: terraform/
+      working-directory: TerraForm/
 
     - name: Apply Terraform
       run: terraform apply -auto-approve
-      working-directory: terraform/
+      working-directory: TerraForm/
 
     - name: Get GKE Credentials
       run: gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE
