@@ -3,7 +3,7 @@ name: Deploy to GKE
 on:
   push:
     branches:
-      - main  # Adjust to the branch you want to trigger the pipeline on
+      - main
 
 jobs:
   deploy:
@@ -13,7 +13,7 @@ jobs:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
       GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}
-      DOCKER_IMAGE: generalfocus/interview-api:latest
+      DOCKER_IMAGE: gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
 
     steps:
     - name: Checkout code
@@ -37,8 +37,8 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest .
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
+        docker build --platform linux/amd64 -t ${{ env.DOCKER_IMAGE }} ./endpoint
+        docker push ${{ env.DOCKER_IMAGE }}
 
     - name: Initialize Terraform
       run: terraform init
@@ -55,7 +55,7 @@ jobs:
       run: kubectl apply -f k8s/deployment.yaml  # Adjust to your Kubernetes deployment manifest location
 
     - name: Wait for Deployment to Complete
-      run: kubectl rollout status deployment/interview-api-deployment  # Adjust deployment name
+      run: kubectl rollout status deployment/interview-api-deployment
 
     - name: Verify API is Accessible
       run: |
