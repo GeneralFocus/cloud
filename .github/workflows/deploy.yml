@@ -3,28 +3,31 @@ name: Deploy to GKE
 on:
   push:
     branches:
-      - main 
+      - main  # Adjust to the branch you want to trigger the pipeline on
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     env:
-      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}  # GCP Project ID stored in GitHub Secrets
-      GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}  # GKE Cluster name stored in GitHub Secrets
-      GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}  # GKE Cluster zone stored in GitHub Secrets
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
+      GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}
       DOCKER_IMAGE: generalfocus/interview-api:latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
-        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}  # Service account key JSON stored in GitHub Secrets
-        export_default_credentials: true
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -39,11 +42,11 @@ jobs:
 
     - name: Initialize Terraform
       run: terraform init
-      working-directory: ../TerraForm/  # Adjust to your Terraform directory
+      working-directory: terraform/
 
     - name: Apply Terraform
       run: terraform apply -auto-approve
-      working-directory: ../TerraForm/  # Adjust to your Terraform directory
+      working-directory: terraform/
 
     - name: Get GKE Credentials
       run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
@@ -56,7 +59,7 @@ jobs:
 
     - name: Verify API is Accessible
       run: |
-        sleep 30  # Wait for the service to become available
+        sleep 30
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://your-api-endpoint)
         if [ $RESPONSE -ne 200 ]; then
           echo "API is not accessible, received HTTP status $RESPONSE"
