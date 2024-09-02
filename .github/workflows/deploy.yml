@@ -3,7 +3,7 @@ name: Deploy to GKE
 on:
   push:
     branches:
-      - main  # Adjust to the branch you want to trigger the pipeline on
+      - main
 
 jobs:
   deploy:
