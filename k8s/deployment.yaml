@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: interview-api
-        image: gcr.io/whatthetime/interview/generalfocus/interview-api:latest  # Replace 'my-gcp-project' with your actual project ID
+        image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/interview/generalfocus/interview-api:latest
         ports:
         - containerPort: 80
         env:
@@ -30,6 +30,8 @@ spec:
           value: UTC
         - name: APP_URL
           value: http://localhost
+      imagePullSecrets:
+      - name: artifact-registry-key 
 ---
 apiVersion: v1
 kind: Service
@@ -43,4 +45,3 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-  
