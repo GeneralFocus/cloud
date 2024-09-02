@@ -31,6 +31,9 @@ jobs:
     - name: Authenticate to Google Cloud
       run: gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
 
+    - name: Enable Cloud Resource Manager API
+      run: gcloud services enable cloudresourcemanager.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }}
+
     - name: Configure Docker to use the GCP Artifact Registry
       run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
