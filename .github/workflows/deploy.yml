@@ -39,7 +39,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest ./endpoint
+        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest Endpoint/
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
       env:
         PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
