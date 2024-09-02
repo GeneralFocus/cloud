@@ -14,6 +14,8 @@ jobs:
       GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
       GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}
       DOCKER_IMAGE: generalfocus/interview-api:latest
+      CLOUDSDK_METRICS_ENVIRONMENT: github-actions-setup-gcloud
+      CLOUDSDK_METRICS_ENVIRONMENT_VERSION: 1.1.1
 
     steps:
     - name: Checkout code
@@ -52,15 +54,15 @@ jobs:
       run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
 
     - name: Deploy to GKE
-      run: kubectl apply -f k8s/deployment.yaml  # Adjust to your Kubernetes deployment manifest location
+      run: kubectl apply -f k8s/deployment.yaml
 
     - name: Wait for Deployment to Complete
-      run: kubectl rollout status deployment/interview-api-deployment  # Adjust deployment name
+      run: kubectl rollout status deployment/interview-api-deployment
 
     - name: Verify API is Accessible
       run: |
         sleep 30
-        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://your-api-endpoint)
+        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://35.188.216.83/api/v1/time)
         if [ $RESPONSE -ne 200 ]; then
           echo "API is not accessible, received HTTP status $RESPONSE"
           exit 1
