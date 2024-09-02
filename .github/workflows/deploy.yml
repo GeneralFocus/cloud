@@ -78,3 +78,4 @@ jobs:
           echo "API is accessible with HTTP status $RESPONSE"
         fi
       shell: bash
+      
