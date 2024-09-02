@@ -37,12 +37,9 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: List Directory Contents
-      run: ls -la Endpoint/
-
     - name: Build Docker image
       run: |
-        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest Endpoint/
+        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest ./endpoint
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
       env:
         PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
