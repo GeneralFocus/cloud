@@ -1,0 +1,65 @@
+name: Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}  # GCP Project ID stored in GitHub Secrets
+      GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}  # GKE Cluster name stored in GitHub Secrets
+      GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}  # GKE Cluster zone stored in GitHub Secrets
+      DOCKER_IMAGE: generalfocus/interview-api:latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}  # Service account key JSON stored in GitHub Secrets
+        export_default_credentials: true
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Configure Docker to use the GCP Container Registry
+      run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | docker login -u _json_key --password-stdin https://gcr.io
+
+    - name: Build Docker image
+      run: |
+        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest .
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
+
+    - name: Initialize Terraform
+      run: terraform init
+      working-directory: ../TerraForm/  # Adjust to your Terraform directory
+
+    - name: Apply Terraform
+      run: terraform apply -auto-approve
+      working-directory: ../TerraForm/  # Adjust to your Terraform directory
+
+    - name: Get GKE Credentials
+      run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
+
+    - name: Deploy to GKE
+      run: kubectl apply -f k8s/deployment.yaml  # Adjust to your Kubernetes deployment manifest location
+
+    - name: Wait for Deployment to Complete
+      run: kubectl rollout status deployment/interview-api-deployment  # Adjust deployment name
+
+    - name: Verify API is Accessible
+      run: |
+        sleep 30  # Wait for the service to become available
+        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://your-api-endpoint)
+        if [ $RESPONSE -ne 200 ]; then
+          echo "API is not accessible, received HTTP status $RESPONSE"
+          exit 1
+        fi
+      shell: bash
