@@ -14,6 +14,7 @@ jobs:
       GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
       GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}
       DOCKER_IMAGE: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/interview/generalfocus/interview-api:latest
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
 
     steps:
     - name: Checkout code
@@ -42,6 +43,15 @@ jobs:
         docker build --platform linux/amd64 -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/interview/generalfocus/interview-api:latest Endpoint/
         docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/interview/generalfocus/interview-api:latest
 
+    - name: Create Kubernetes Docker Registry Secret
+      run: |
+        kubectl create secret docker-registry artifact-registry-key \
+          --docker-server=us-central1-docker.pkg.dev \
+          --docker-username=_json_key \
+          --docker-password="$(cat /tmp/gcp-key.json)" \
+          --docker-email=your-email@example.com \
+          --dry-run=client -o yaml | kubectl apply -f -
+
     - name: Initialize Terraform
       run: terraform init
       working-directory: TerraForm/
@@ -57,15 +67,11 @@ jobs:
     - name: Get GKE Credentials
       run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
 
-    - name: Install gke-gcloud-auth-plugin
-      run: |
-        gcloud components install gke-gcloud-auth-plugin
-
     - name: Deploy to GKE
-      run: kubectl apply -f k8s/deployment.yaml 
+      run: kubectl apply -f k8s/deployment.yaml
 
     - name: Wait for Deployment to Complete
-      run: kubectl rollout status deployment/interview-api-deployment 
+      run: kubectl rollout status deployment/interview-api-deployment
 
     - name: Verify API is Accessible
       run: |
