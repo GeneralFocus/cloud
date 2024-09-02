@@ -57,6 +57,10 @@ jobs:
     - name: Get GKE Credentials
       run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
 
+    - name: Install gke-gcloud-auth-plugin
+      run: |
+        gcloud components install gke-gcloud-auth-plugin
+
     - name: Deploy to GKE
       run: kubectl apply -f k8s/deployment.yaml 
 
