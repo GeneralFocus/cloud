@@ -13,7 +13,7 @@ jobs:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
       GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}
-      DOCKER_IMAGE: gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
+      DOCKER_IMAGE: gcr.io/${{ secrets.GCP_PROJECT_ID }}/interview/generalfocus/interview-api:latest
 
     steps:
     - name: Checkout code
@@ -39,8 +39,8 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest Endpoint/
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
+        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/interview/generalfocus/interview-api:latest Endpoint/
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/interview/generalfocus/interview-api:latest
       env:
         PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
@@ -80,5 +80,3 @@ jobs:
           echo "API is accessible with HTTP status $RESPONSE"
         fi
       shell: bash
-
-      
