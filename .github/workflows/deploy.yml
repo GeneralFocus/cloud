@@ -61,10 +61,20 @@ jobs:
 
     - name: Verify API is Accessible
       run: |
-        sleep 30
-        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://35.188.216.83/api/v1/time)
-        if [ $RESPONSE -ne 200 ]; then
+        echo "Waiting for service external IP..."
+        sleep 30  # Wait for the LoadBalancer to provision an external IP
+        SERVICE_IP=""
+        while [ -z "$SERVICE_IP" ]; do
+          echo "Fetching external IP..."
+          SERVICE_IP=$(kubectl get svc interview-api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          [ -z "$SERVICE_IP" ] && sleep 10
+        done
+        echo "Service External IP: $SERVICE_IP"
+        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://$SERVICE_IP/api/v1/time)
+        if [ "$RESPONSE" -ne 200 ]; then
           echo "API is not accessible, received HTTP status $RESPONSE"
           exit 1
+        else
+          echo "API is accessible with HTTP status $RESPONSE"
         fi
       shell: bash
