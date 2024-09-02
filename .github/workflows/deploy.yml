@@ -14,8 +14,6 @@ jobs:
       GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
       GKE_ZONE: ${{ secrets.GKE_CLUSTER_ZONE }}
       DOCKER_IMAGE: generalfocus/interview-api:latest
-      CLOUDSDK_METRICS_ENVIRONMENT: github-actions-setup-gcloud
-      CLOUDSDK_METRICS_ENVIRONMENT_VERSION: 1.1.1
 
     steps:
     - name: Checkout code
@@ -31,11 +29,11 @@ jobs:
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Configure Docker to use the GCP Container Registry
-      run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | docker login -u _json_key --password-stdin https://gcr.io
+    - name: Configure Docker to use Google Container Registry
+      run: |
+        gcloud auth configure-docker
+      env:
+        CLOUDSDK_CORE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
 
     - name: Build Docker image
       run: |
@@ -54,10 +52,10 @@ jobs:
       run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
 
     - name: Deploy to GKE
-      run: kubectl apply -f k8s/deployment.yaml
+      run: kubectl apply -f k8s/deployment.yaml  # Adjust to your Kubernetes deployment manifest location
 
     - name: Wait for Deployment to Complete
-      run: kubectl rollout status deployment/interview-api-deployment
+      run: kubectl rollout status deployment/interview-api-deployment  # Adjust deployment name
 
     - name: Verify API is Accessible
       run: |
