@@ -3,7 +3,7 @@ name: Deploy to GKE
 on:
   push:
     branches:
-      - main
+      - main  # Adjust to the branch you want to trigger the pipeline on
 
 jobs:
   deploy:
@@ -29,16 +29,18 @@ jobs:
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Configure Docker to use Google Container Registry
-      run: |
-        gcloud auth configure-docker
-      env:
-        CLOUDSDK_CORE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Configure Docker to use the GCP Container Registry
+      run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | docker login -u _json_key --password-stdin https://gcr.io
 
     - name: Build Docker image
       run: |
-        docker build --platform linux/amd64 -t ${{ env.DOCKER_IMAGE }} ./endpoint
-        docker push ${{ env.DOCKER_IMAGE }}
+        docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest ./endpoint
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/generalfocus/interview-api:latest
+      env:
+        PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
     - name: Initialize Terraform
       run: terraform init
@@ -52,10 +54,10 @@ jobs:
       run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
 
     - name: Deploy to GKE
-      run: kubectl apply -f k8s/deployment.yaml  # Adjust to your Kubernetes deployment manifest location
+      run: kubectl apply -f k8s/deployment.yaml 
 
     - name: Wait for Deployment to Complete
-      run: kubectl rollout status deployment/interview-api-deployment
+      run: kubectl rollout status deployment/interview-api-deployment 
 
     - name: Verify API is Accessible
       run: |
