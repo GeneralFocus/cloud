@@ -26,7 +26,7 @@ jobs:
         install_components: 'beta'
 
     - name: Create GCP Service Account Key File
-      run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | base64 --decode > /tmp/gcp-key.json
+      run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | jq -r . > /tmp/gcp-key.json
 
     - name: Authenticate to Google Cloud
       run: gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
@@ -80,5 +80,3 @@ jobs:
           echo "API is accessible with HTTP status $RESPONSE"
         fi
       shell: bash
-
-      
