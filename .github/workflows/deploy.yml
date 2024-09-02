@@ -25,8 +25,11 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         install_components: 'beta'
 
+    - name: Create GCP Service Account Key File
+      run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > /tmp/gcp-key.json
+
     - name: Authenticate to Google Cloud
-      run: gcloud auth activate-service-account --key-file=${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+      run: gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
 
     - name: Configure Docker to use the GCP Container Registry
       run: gcloud auth configure-docker
