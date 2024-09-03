@@ -65,7 +65,7 @@ jobs:
       run: kubectl apply -f k8s/deployment.yaml 
 
     - name: Wait for Deployment to Complete
-      run: kubectl rollout status deployment/api-deployment -n api-namespace
+      run: kubectl rollout status deployment/interview-api-deployment 
 
     - name: Verify API is Accessible
       run: |
@@ -74,7 +74,7 @@ jobs:
         SERVICE_IP=""
         while [ -z "$SERVICE_IP" ]; do
           echo "Fetching external IP..."
-          SERVICE_IP=$(kubectl get svc api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          SERVICE_IP=$(kubectl get svc interview-api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           [ -z "$SERVICE_IP" ] && sleep 10
         done
         echo "Service External IP: $SERVICE_IP"

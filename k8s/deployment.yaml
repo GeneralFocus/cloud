@@ -1,8 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-deployment  # Changed to match existing deployment name
-  namespace: api-namespace  # Specify the namespace
+  name: interview-api-deployment
 spec:
   replicas: 3
   selector:
@@ -37,8 +36,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: api-service  # Changed to match deployment or existing service
-  namespace: api-namespace  # Specify the namespace
+  name: interview-api-service
 spec:
   type: LoadBalancer
   selector:
